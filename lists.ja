@@ -1,0 +1,24 @@
+var n1 ;= 10;
+
+list mylist
+
+append mylist (10 + 10)
+
+append mylist (#n1)
+
+ar_print mylist
+
+pop mylist
+
+ar_print mylist
+
+println #mylist(0) "\n";
+
+append mylist(#mylist)
+
+ar_print mylist;
+
+var mylist2 ;= #mylist(1);
+
+println "mylist2: ";
+ar_print mylist2
