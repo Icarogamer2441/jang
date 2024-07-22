@@ -1,0 +1,7 @@
+function sum n1 n2 {
+        #n1 + #n2
+}
+
+var name ;= "Michael";
+var age ;= !sum(12 15 + 10 - 3);
+println "name: " #name "\nage: " #age "\n";
