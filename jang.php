@@ -278,11 +278,84 @@ class Jang {
                                         }
                                 } else if($token[1] == "clearets") {
                                         $this->rets = array();
+                                } else if($token[1] == "list") {
+                                        $token = $tokens[$pos];
+                                        $pos++;
+                                        $this->variables[$token[1]] = array();
+                                } else if($token[1] == "append") {
+                                        $token = $tokens[$pos];
+                                        $pos++;
+                                        $name = $token[1];
+                                        $token = $tokens[$pos];
+                                        $pos++;
+                                        if($token[0] == $this->t_lparen) {
+                                                $code = "";
+                                                $token = $tokens[$pos];
+                                                $pos++;
+                                                while($token[0] != $this->t_rparen && $pos <= sizeof($tokens)) {
+                                                        if($token[0] == $this->t_string) {
+                                                                $code = $code . "\"" . $token[1] . "\" ";
+                                                        } else {
+                                                                $code = $code . $token[1] . " ";
+                                                        }
+
+                                                        if($pos < sizeof($tokens)) {
+                                                                $token = $tokens[$pos];
+                                                        }
+                                                        $pos++;
+                                                }
+                                                $this->Execute($code);
+                                                $this->variables[$name][] = array_pop($this->rets);
+                                        }
+                                } else if($token[1] == "pop") {
+                                        $token = $tokens[$pos];
+                                        $pos++;
+                                        array_pop($this->variables[$token[1]]);
+                                } else if($token[1] == "ar_print") {
+                                        $token = $tokens[$pos];
+                                        $pos++;
+                                        echo "[\n";
+                                        foreach($this->variables[$token[1]] as $item) {
+                                                if(gettype($item) == "array") {
+                                                        print_r($item);
+                                                } else {
+                                                        echo "  " . $item . ",\n";
+                                                }
+                                        }
+                                        echo "]\n";
                                 }
                         } else if($token[0] == $this->t_var) {
                                 $token = $tokens[$pos];
                                 $pos++;
-                                $this->rets[] = $this->variables[$token[1]];
+                                $name = $token[1];
+                                if($pos < sizeof($tokens)) {
+                                        $token = $tokens[$pos];
+                                        $pos++;
+                                        if($token[0] == $this->t_lparen) {
+                                                $code = "";
+                                                $token = $tokens[$pos];
+                                                $pos++;
+                                                while($token[0] != $this->t_rparen && $pos <= sizeof($tokens)) {
+                                                        if($token[0] == $this->t_string) {
+                                                                $code = $code . "\"" . $token[1] . "\" ";
+                                                        } else {
+                                                                $code = $code . $token[1] . " ";
+                                                        }
+
+                                                        if($pos < sizeof($tokens)) {
+                                                                $token = $tokens[$pos];
+                                                        }
+                                                        $pos++;
+                                                }
+                                                $this->Execute($code);
+                                                $this->rets[] = $this->variables[$name][array_pop($this->rets)];
+                                        } else {
+                                                $pos--;
+                                                $this->rets[] = $this->variables[$name];
+                                        }
+                                } else {
+                                        $this->rets[] = $this->variables[$name];
+                                }
                         } else if($token[0] == $this->t_call) {
                                 $token = $tokens[$pos];
                                 $pos++;
