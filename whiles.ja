@@ -1,0 +1,9 @@
+var num ;= 0;
+while {
+        if(#num < 10) {
+                var num ;= #num + 1;
+                println "num: " #num "\n";
+        } if(#num >= 10) {
+                break
+        }
+}
