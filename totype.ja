@@ -1,0 +1,6 @@
+var n1 ;= toint("10");
+var n2 ;= tofloat("50.51");
+println "n1 type: " type(#n1) " value: " #n1 "\nn2 type: " type(#n2) " value: " #n2 "\n";
+var n2 ;= tostring(#n2);
+println "new n2 type: " type(#n2) "\n";
+println tostring(#n1) "\n";
