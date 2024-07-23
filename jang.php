@@ -180,6 +180,8 @@ class Jang {
         public $functions = array();
         public $structs = array();
         public $svars = array();
+        public $whiles = array(false);
+        public $whilepos = -1;
 
         public function __construct() {
 
@@ -705,6 +707,59 @@ class Jang {
                                         } else {
                                                 die("Error: use '(' to start the arguments!\n");
                                         }
+                                } else if($token[1] == "break") {
+                                        $this->whiles[$this->whilepos] = false;
+                                        $this->whilepos--;
+                                } else if($token[1] == "while") {
+                                        $token = $tokens[$pos];
+                                        $pos++;
+                                        $this->whilepos++;
+                                        $endnum = 0;
+                                        while($this->whilepos < 0 || $this->whilepos >= sizeof($this->whiles)) {
+                                                if($this->whilepos >= sizeof($this->whiles)) {
+                                                        $this->whiles[] = true;
+                                                } else if ($this->whilepos < 0) {
+                                                        $this->whilepos++;
+                                                }
+                                        }
+
+                                        $this->whiles[$this->whilepos] = true;
+
+                                        $whilepos = $this->whilepos;
+                                        if($token[0] == $this->t_lbracket) {
+                                                $endnum++;
+                                                $token = $tokens[$pos];
+                                                $pos++;
+                                                $whcode = "";
+                                                while($endnum > 0 && $pos < sizeof($tokens)) {
+                                                        if($token[0] == $this->t_lbracket) {
+                                                                $endnum++;
+                                                                $whcode = $whcode . $token[1] . " ";
+                                                        } else if($token[0] == $this->t_rbracket) {
+                                                                $endnum--;
+                                                                if($endnum >= 1) {
+                                                                        $whcode = $whcode . $token[1] . " ";
+                                                                }
+                                                        } else {
+                                                                if($token[0] == $this->t_string) {
+                                                                        $whcode = $whcode . "\"" . $token[1] . "\" ";
+                                                                } else {
+                                                                        $whcode = $whcode . $token[1] . " ";
+                                                                }
+                                                        }
+                                                        $token = $tokens[$pos];
+                                                        $pos++;
+                                                }
+                                                $pos--;
+
+                                                while($this->whiles[$whilepos]) {
+                                                        $this->Execute($whcode);
+                                                }
+                                        } else if($token[0] == $this->t_lparen) {
+                                                die("Error: whiles can't do '=|!=', '>|<' or '>=|<=' in this language!\n");
+                                        } else {
+                                                die("Error: use '{' to start while code!\n");
+                                        }
                                 }
                         } else if($token[0] == $this->t_var) {
                                 $token = $tokens[$pos];
@@ -889,7 +944,7 @@ class Jang {
 }
 
 $jang = new Jang();
-$version = "0.2";
+$version = "0.3";
 if($argc < 2) {
         echo "Jang version: $version\n";
         die("Usage: php $argv[0] <file.ja>\n");
