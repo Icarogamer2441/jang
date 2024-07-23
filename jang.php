@@ -24,6 +24,8 @@ trait TokenType {
         public $t_ge = "GREATEREQUAL";
         public $t_le = "LESSEQUAL";
         public $t_comment = "COMMENT";
+        public $t_structpoint = "STRUCTPOINT";
+        public $t_structget = "STRUCTGET";
 }
 
 class Lexer {
@@ -76,7 +78,16 @@ class Lexer {
                         } else if($token == "+") {
                                 $this->tokens[] = array($this->t_plus, "+");
                         } else if($token == "-") {
-                                $this->tokens[] = array($this->t_minus, "-");
+                                if ($pos < strlen($this->code)) {
+                                        if($this->code[$pos] == ">") {
+                                                $this->tokens[] = array($this->t_structpoint, "->");
+                                                $pos++;
+                                        } else {
+                                                $this->tokens[] = array($this->t_minus, "-");
+                                        }
+                                } else {
+                                        $this->tokens[] = array($this->t_minus, "-");
+                                }
                         } else if($token == "*") {
                                 $this->tokens[] = array($this->t_times, "*");
                         } else if($token == "/") {
@@ -141,8 +152,10 @@ class Lexer {
                                 }
                         } else if($token == "@") {
                                 $this->tokens[] = array($this->t_comment, "@");
+                        } else if($token == "$") {
+                                $this->tokens[] = array($this->t_structget, "$");
                         } else {
-                                while($token != " " && $token != "\n" && $token != "\t" && $token != "+" && $token != "\"" && $token != ";" && $token != "-" && $pos <= strlen($this->code) && $token != "(" && $token != ")" && $token != "!" && $token != "{" && $token != "}" && $token != "#" && $token != "*" && $token != "/" && $token != "=" && $token != ">" && $token != "<") {
+                                while($token != " " && $token != "\n" && $token != "\t" && $token != "+" && $token != "\"" && $token != ";" && $token != "-" && $pos <= strlen($this->code) && $token != "(" && $token != ")" && $token != "!" && $token != "{" && $token != "}" && $token != "#" && $token != "*" && $token != "/" && $token != "=" && $token != ">" && $token != "<" && $token != "$" && $token != "@") {
                                         $this->jndtoks[] = $token;
 
                                         if($pos < strlen($this->code)) {
@@ -165,6 +178,8 @@ class Jang {
         public $variables = array();
         public $rets = array();
         public $functions = array();
+        public $structs = array();
+        public $svars = array();
 
         public function __construct() {
 
@@ -436,6 +451,259 @@ class Jang {
                                                 if($istrue) {
                                                         $this->Execute($ifcode);
                                                 }
+                                        } else {
+                                                die("Error: Use '(' to start if checks!\n");
+                                        }
+                                } else if($token[1] == "toint") {
+                                        $code = "";
+                                        $token = $tokens[$pos];
+                                        $pos++;
+                                        if($token[0] == $this->t_lparen) {
+                                                $token = $tokens[$pos];
+                                                $pos++;
+                                                $argsendnum = 0;
+                                                $argsendnum++;
+                                                while($argsendnum > 0 && $pos <= sizeof($tokens)) {
+                                                        if($token[0] == $this->t_rparen) {
+                                                                $argsendnum--;
+                                                                if($argsendnum >= 1) {
+                                                                        if($token[0] == $this->t_string) {
+                                                                                $code = $code . "\"" . $token[1] . "\" ";
+                                                                        } else {
+                                                                                $code = $code . $token[1] . " ";
+                                                                        }
+                                                                }
+                                                        } else if($token[0] == $this->t_lparen) {
+                                                                $argsendnum++;
+                                                                if($token[0] == $this->t_string) {
+                                                                        $code = $code . "\"" . $token[1] . "\" ";
+                                                                } else {
+                                                                        $code = $code . $token[1] . " ";
+                                                                }
+                                                        } else {
+                                                                if($token[0] == $this->t_string) {
+                                                                        $code = $code . "\"" . $token[1] . "\" ";
+                                                                } else {
+                                                                        $code = $code . $token[1] . " ";
+                                                                }
+                                                        }
+
+                                                        if($pos < sizeof($tokens)) {
+                                                                $token = $tokens[$pos];
+                                                        }
+                                                        $pos++;
+                                                }
+                                                $this->Execute($code);
+                                                $this->rets[] = (int)array_pop($this->rets);
+                                                $pos--;
+                                        } else {
+                                                die("Error: use '(' to start the arguments!\n");
+                                        }
+                                } else if($token[1] == "tofloat") {
+                                        $code = "";
+                                        $token = $tokens[$pos];
+                                        $pos++;
+                                        if($token[0] == $this->t_lparen) {
+                                                $token = $tokens[$pos];
+                                                $pos++;
+                                                $argsendnum = 0;
+                                                $argsendnum++;
+                                                while($argsendnum > 0 && $pos <= sizeof($tokens)) {
+                                                        if($token[0] == $this->t_rparen) {
+                                                                $argsendnum--;
+                                                                if($argsendnum >= 1) {
+                                                                        if($token[0] == $this->t_string) {
+                                                                                $code = $code . "\"" . $token[1] . "\" ";
+                                                                        } else {
+                                                                                $code = $code . $token[1] . " ";
+                                                                        }
+                                                                }
+                                                        } else if($token[0] == $this->t_lparen) {
+                                                                $argsendnum++;
+                                                                if($token[0] == $this->t_string) {
+                                                                        $code = $code . "\"" . $token[1] . "\" ";
+                                                                } else {
+                                                                        $code = $code . $token[1] . " ";
+                                                                }
+                                                        } else {
+                                                                if($token[0] == $this->t_string) {
+                                                                        $code = $code . "\"" . $token[1] . "\" ";
+                                                                } else {
+                                                                        $code = $code . $token[1] . " ";
+                                                                }
+                                                        }
+
+                                                        if($pos < sizeof($tokens)) {
+                                                                $token = $tokens[$pos];
+                                                        }
+                                                        $pos++;
+                                                }
+                                                $this->Execute($code);
+                                                $this->rets[] = (float)array_pop($this->rets);
+                                                $pos--;
+                                        } else {
+                                                die("Error: use '(' to start the arguments!\n");
+                                        }
+                                } else if($token[1] == "tostring") {
+                                        $code = "";
+                                        $token = $tokens[$pos];
+                                        $pos++;
+                                        if($token[0] == $this->t_lparen) {
+                                                $token = $tokens[$pos];
+                                                $pos++;
+                                                $argsendnum = 0;
+                                                $argsendnum++;
+                                                while($argsendnum > 0 && $pos <= sizeof($tokens)) {
+                                                        if($token[0] == $this->t_rparen) {
+                                                                $argsendnum--;
+                                                                if($argsendnum >= 1) {
+                                                                        if($token[0] == $this->t_string) {
+                                                                                $code = $code . "\"" . $token[1] . "\" ";
+                                                                        } else {
+                                                                                $code = $code . $token[1] . " ";
+                                                                        }
+                                                                }
+                                                        } else if($token[0] == $this->t_lparen) {
+                                                                $argsendnum++;
+                                                                if($token[0] == $this->t_string) {
+                                                                        $code = $code . "\"" . $token[1] . "\" ";
+                                                                } else {
+                                                                        $code = $code . $token[1] . " ";
+                                                                }
+                                                        } else {
+                                                                if($token[0] == $this->t_string) {
+                                                                        $code = $code . "\"" . $token[1] . "\" ";
+                                                                } else {
+                                                                        $code = $code . $token[1] . " ";
+                                                                }
+                                                        }
+
+                                                        if($pos < sizeof($tokens)) {
+                                                                $token = $tokens[$pos];
+                                                        }
+                                                        $pos++;
+                                                }
+                                                $this->Execute($code);
+                                                $this->rets[] = (string)array_pop($this->rets);
+                                                $pos--;
+                                        } else {
+                                                die("Error: use '(' to start the arguments!\n");
+                                        }
+                                } else if($token[1] == "struct") {
+                                        $token = $tokens[$pos];
+                                        $pos++;
+                                        $name = $token[1];
+                                        $token = $tokens[$pos];
+                                        $pos++;
+                                        if($token[0] == $this->t_lbracket) {
+                                                $token = $tokens[$pos];
+                                                $pos++;
+                                                $items = array();
+                                                while($token[0] != $this->t_rbracket && $pos <= sizeof($tokens)) {
+                                                        $items[] = $token[1];
+
+                                                        if($pos < sizeof($tokens)) {
+                                                                $token = $tokens[$pos];
+                                                        }
+                                                        $pos++;
+                                                }
+                                                $this->structs[$name] = $items;
+                                        } else {
+                                                die("Error: use '{' to start set the struct arguments\n");
+                                        }
+                                } else if($token[1] == "svar") {
+                                        $token = $tokens[$pos];
+                                        $pos++;
+                                        $name = $token[1];
+                                        $token = $tokens[$pos];
+                                        $pos++;
+                                        if($token[0] == $this->t_set) {
+                                                $token = $tokens[$pos];
+                                                $pos++;
+                                                $this->svars[$name] = $this->structs[$token[1]];
+                                        } else {
+                                                die("Error: use ';=' to set struct variables\n");
+                                        }
+                                } else if($token[1] == "svset") {
+                                        $token = $tokens[$pos];
+                                        $pos++;
+                                        $name = $token[1];
+                                        $token = $tokens[$pos];
+                                        $pos++;
+                                        if($token[0] == $this->t_structpoint) {
+                                                $token = $tokens[$pos];
+                                                $pos++;
+                                                $part = $token[1];
+                                                $token = $tokens[$pos];
+                                                $pos++;
+                                                if($token[0] == $this->t_set) {
+                                                        $code = "";
+                                                        $token = $tokens[$pos];
+                                                        $pos++;
+                                                        while($token[0] != $this->t_semicolon && $pos <= sizeof($tokens)) {
+                                                                if($token[0] == $this->t_string) {
+                                                                        $code = $code . "\"" . $token[1] . "\" ";
+                                                                } else {
+                                                                        $code = $code . $token[1] . " ";
+                                                                }
+
+                                                                if($pos < sizeof($tokens)) {
+                                                                        $token = $tokens[$pos];
+                                                                }
+                                                                $pos++;
+                                                        }
+                                                        $this->Execute($code);
+                                                        $this->svars[$name][$part] = array_pop($this->rets);
+                                                } else {
+                                                        die("Error: use ';=' to set struct variables arguments values\n");
+                                                }
+                                        } else {
+                                                die("Error: use '->' to reference the argument name");
+                                        }
+                                } else if($token[1] == "type") {
+                                        $code = "";
+                                        $token = $tokens[$pos];
+                                        $pos++;
+                                        if($token[0] == $this->t_lparen) {
+                                                $token = $tokens[$pos];
+                                                $pos++;
+                                                $argsendnum = 0;
+                                                $argsendnum++;
+                                                while($argsendnum > 0 && $pos <= sizeof($tokens)) {
+                                                        if($token[0] == $this->t_rparen) {
+                                                                $argsendnum--;
+                                                                if($argsendnum >= 1) {
+                                                                        if($token[0] == $this->t_string) {
+                                                                                $code = $code . "\"" . $token[1] . "\" ";
+                                                                        } else {
+                                                                                $code = $code . $token[1] . " ";
+                                                                        }
+                                                                }
+                                                        } else if($token[0] == $this->t_lparen) {
+                                                                $argsendnum++;
+                                                                if($token[0] == $this->t_string) {
+                                                                        $code = $code . "\"" . $token[1] . "\" ";
+                                                                } else {
+                                                                        $code = $code . $token[1] . " ";
+                                                                }
+                                                        } else {
+                                                                if($token[0] == $this->t_string) {
+                                                                        $code = $code . "\"" . $token[1] . "\" ";
+                                                                } else {
+                                                                        $code = $code . $token[1] . " ";
+                                                                }
+                                                        }
+
+                                                        if($pos < sizeof($tokens)) {
+                                                                $token = $tokens[$pos];
+                                                        }
+                                                        $pos++;
+                                                }
+                                                $pos--;
+                                                $this->Execute($code);
+                                                $this->rets[] = gettype(array_pop($this->rets));
+                                        } else {
+                                                die("Error: use '(' to start the arguments!\n");
                                         }
                                 }
                         } else if($token[0] == $this->t_var) {
@@ -604,13 +872,24 @@ class Jang {
                                                 $pos++;
                                         }
                                 }
+                        } else if($token[0] == $this->t_structget) {
+                                $token = $tokens[$pos];
+                                $pos++;
+                                $name = $token[1];
+                                $token = $tokens[$pos];
+                                $pos++;
+                                if ($token[0] == $this->t_structpoint) {
+                                        $token = $tokens[$pos];
+                                        $pos++;
+                                        $this->rets[] = $this->svars[$name][$token[1]];
+                                }
                         }
                 }
         }
 }
 
 $jang = new Jang();
-$version = "0.1";
+$version = "0.2";
 if($argc < 2) {
         echo "Jang version: $version\n";
         die("Usage: php $argv[0] <file.ja>\n");
