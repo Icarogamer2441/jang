@@ -17,6 +17,13 @@ trait TokenType {
         public $t_var = "VAR";
         public $t_times = "TIMES";
         public $t_divide = "DIVIDE";
+        public $t_equal = "EQUAL";
+        public $t_notequal = "NOTEQUAL";
+        public $t_greater = "GREATERTHAN";
+        public $t_less = "LESSTHAN";
+        public $t_ge = "GREATEREQUAL";
+        public $t_le = "LESSEQUAL";
+        public $t_comment = "COMMENT";
 }
 
 class Lexer {
@@ -92,15 +99,50 @@ class Lexer {
                         } else if($token == ")") {
                                 $this->tokens[] = array($this->t_rparen, ")");
                         } else if($token == "!") {
-                                $this->tokens[] = array($this->t_call, "!");
+                                if($pos < strlen($this->code)) {
+                                        if($this->code[$pos] == "=") {
+                                                $this->tokens[] = array($this->t_notequal, "!=");
+                                                $pos++;
+                                        } else {
+                                                $this->tokens[] = array($this->t_call, "!");
+                                        }
+                                } else {
+                                        $this->tokens[] = array($this->t_call, "!");
+                                }
                         } else if($token == "{") {
                                 $this->tokens[] = array($this->t_lbracket, "{");
                         } else if($token == "}") {
                                 $this->tokens[] = array($this->t_rbracket, "}");
                         } else if($token == "#") {
                                 $this->tokens[] = array($this->t_var, "#");
+                        } else if($token == "=") {
+                                $this->tokens[] = array($this->t_equal, "=");
+                        } else if($token == ">") {
+                                if($pos < strlen($this->code)) {
+                                        if($this->code[$pos] == "=") {
+                                                $this->tokens[] = array($this->t_ge, ">=");
+                                                $pos++;
+                                        } else {
+                                                $this->tokens[] = array($this->t_greater, ">");
+                                        }
+                                } else {
+                                        $this->tokens[] = array($this->t_greater, ">");
+                                }
+                        } else if($token == "<") {
+                                if($pos < strlen($this->code)) {
+                                        if($this->code[$pos] == "=") {
+                                                $this->tokens[] = array($this->t_le, "<=");
+                                                $pos++;
+                                        } else {
+                                                $this->tokens[] = array($this->t_less, "<");
+                                        }
+                                } else {
+                                        $this->tokens[] = array($this->t_less, "<");
+                                }
+                        } else if($token == "@") {
+                                $this->tokens[] = array($this->t_comment, "@");
                         } else {
-                                while($token != " " && $token != "\n" && $token != "\t" && $token != "+" && $token != "\"" && $token != ";" && $token != "-" && $pos <= strlen($this->code) && $token != "(" && $token != ")" && $token != "!" && $token != "{" && $token != "}" && $token != "#" && $token != "*" && $token != "/") {
+                                while($token != " " && $token != "\n" && $token != "\t" && $token != "+" && $token != "\"" && $token != ";" && $token != "-" && $pos <= strlen($this->code) && $token != "(" && $token != ")" && $token != "!" && $token != "{" && $token != "}" && $token != "#" && $token != "*" && $token != "/" && $token != "=" && $token != ">" && $token != "<") {
                                         $this->jndtoks[] = $token;
 
                                         if($pos < strlen($this->code)) {
@@ -204,9 +246,7 @@ class Jang {
                                                 echo $ret;
                                         }
 
-                                        for($i = 0; $i <= sizeof($this->rets); $i++) {
-                                                array_pop($this->rets);
-                                        }
+                                        $this->rets = array();
                                 } else if($token[1] == "function") {
                                         $token = $tokens[$pos];
                                         $pos++;
@@ -243,7 +283,11 @@ class Jang {
                                                                 $this->functions[$name]["code"][] = $token[1];
                                                         }
                                                 } else {
-                                                        $this->functions[$name]["code"][] = $token[1];
+                                                        if($token[0] == $this->t_string) {
+                                                                $this->functions[$name]["code"][] = "\"" . $token[1] ."\"";
+                                                        } else {
+                                                                $this->functions[$name]["code"][] = $token[1];
+                                                        }
                                                 }
                                                 $token = $tokens[$pos];
                                                 $pos++;
@@ -323,6 +367,76 @@ class Jang {
                                                 }
                                         }
                                         echo "]\n";
+                                } else if($token[1] == "if") {
+                                        $token = $tokens[$pos];
+                                        $pos++;
+                                        $endnum = 0;
+                                        if($token[0] == $this->t_lparen) {
+                                                $code = "";
+                                                $token = $tokens[$pos];
+                                                $pos++;
+                                                $argsendnum = 0;
+                                                $argsendnum++;
+                                                while($argsendnum > 0 && $pos <= sizeof($tokens)) {
+                                                        if($token[0] == $this->t_rparen) {
+                                                                $argsendnum--;
+                                                                if($argsendnum >= 1) {
+                                                                        if($token[0] == $this->t_string) {
+                                                                                $code = $code . "\"" . $token[1] . "\" ";
+                                                                        } else {
+                                                                                $code = $code . $token[1] . " ";
+                                                                        }
+                                                                }
+                                                        } else if($token[0] == $this->t_lparen) {
+                                                                $argsendnum++;
+                                                                if($token[0] == $this->t_string) {
+                                                                        $code = $code . "\"" . $token[1] . "\" ";
+                                                                } else {
+                                                                        $code = $code . $token[1] . " ";
+                                                                }
+                                                        } else {
+                                                                if($token[0] == $this->t_string) {
+                                                                        $code = $code . "\"" . $token[1] . "\" ";
+                                                                } else {
+                                                                        $code = $code . $token[1] . " ";
+                                                                }
+                                                        }
+
+                                                        if($pos < sizeof($tokens)) {
+                                                                $token = $tokens[$pos];
+                                                        }
+                                                        $pos++;
+                                                }
+                                                $this->Execute($code);
+                                                $istrue = array_pop($this->rets);
+                                                $endnum++;
+                                                $token = $tokens[$pos];
+                                                $pos++;
+                                                $ifcode = "";
+                                                while($endnum > 0 && $pos < sizeof($tokens)) {
+                                                        if($token[0] == $this->t_lbracket) {
+                                                                $endnum++;
+                                                                $ifcode = $ifcode . $token[1] . " ";
+                                                        } else if($token[0] == $this->t_rbracket) {
+                                                                $endnum--;
+                                                                if($endnum >= 1) {
+                                                                        $ifcode = $ifcode . $token[1] . " ";
+                                                                }
+                                                        } else {
+                                                                if($token[0] == $this->t_string) {
+                                                                        $ifcode = $ifcode . "\"" . $token[1] . "\" ";
+                                                                } else {
+                                                                        $ifcode = $ifcode . $token[1] . " ";
+                                                                }
+                                                        }
+                                                        $token = $tokens[$pos];
+                                                        $pos++;
+                                                }
+                                                $pos--;
+                                                if($istrue) {
+                                                        $this->Execute($ifcode);
+                                                }
+                                        }
                                 }
                         } else if($token[0] == $this->t_var) {
                                 $token = $tokens[$pos];
@@ -415,13 +529,90 @@ class Jang {
                                 } else {
                                         die("Error: use '(' to start functions arguments (and call it)");
                                 }
+                        } else if($token[0] == $this->t_equal) {
+                                $token = $tokens[$pos];
+                                $pos++;
+                                if($token[0] == $this->t_var) {
+                                        $token = $tokens[$pos];
+                                        $pos++;
+                                        $this->rets[] = array_pop($this->rets) === $this->variables[$token[1]];
+                                } else {
+                                        $this->rets[] = array_pop($this->rets) === $token[1];
+                                }
+                        } else if($token[0] == $this->t_notequal) {
+                                $token = $tokens[$pos];
+                                $pos++;
+                                if($token[0] == $this->t_var) {
+                                        $token = $tokens[$pos];
+                                        $pos++;
+                                        if(array_pop($this->rets) !== $this->variables[$token[1]]) {
+                                                $this->rets[] = 1;
+                                        } else {
+                                                $this->rets[] = 0;
+                                        }
+                                } else {
+                                        $this->rets[] = array_pop($this->rets) !== $token[1];
+                                }
+                        } else if($token[0] == $this->t_greater) {
+                                $token = $tokens[$pos];
+                                $pos++;
+                                if($token[0] == $this->t_var) {
+                                        $token = $tokens[$pos];
+                                        $pos++;
+                                        $this->rets[] = array_pop($this->rets) > $this->variables[$token[1]];
+                                } else {
+                                        $this->rets[] = array_pop($this->rets) > $token[1];
+                                }
+                        } else if($token[0] == $this->t_less) {
+                                $token = $tokens[$pos];
+                                $pos++;
+                                if($token[0] == $this->t_var) {
+                                        $token = $tokens[$pos];
+                                        $pos++;
+                                        $this->rets[] = array_pop($this->rets) < $this->variables[$token[1]];
+                                } else {
+                                        $this->rets[] = array_pop($this->rets) < $token[1];
+                                }
+                        } else if($token[0] == $this->t_ge) {
+                                $token = $tokens[$pos];
+                                $pos++;
+                                if($token[0] == $this->t_var) {
+                                        $token = $tokens[$pos];
+                                        $pos++;
+                                        $this->rets[] = array_pop($this->rets) >= $this->variables[$token[1]];
+                                } else {
+                                        $this->rets[] = array_pop($this->rets) >= $token[1];
+                                }
+                        } else if($token[0] == $this->t_le) {
+                                $token = $tokens[$pos];
+                                $pos++;
+                                if($token[0] == $this->t_var) {
+                                        $token = $tokens[$pos];
+                                        $pos++;
+                                        $this->rets[] = array_pop($this->rets) <= $this->variables[$token[1]];
+                                } else {
+                                        $this->rets[] = array_pop($this->rets) <= $token[1];
+                                }
+                        } else if($token[0] == $this->t_comment) {
+                                if($pos < sizeof($tokens)) {
+                                        $token = $tokens[$pos];
+                                        $pos++;
+                                        while($token[0] != $this->t_comment && $pos <= sizeof($tokens)) {
+                                                if($pos < sizeof($tokens)) {
+                                                        $token = $tokens[$pos];
+                                                }
+                                                $pos++;
+                                        }
+                                }
                         }
                 }
         }
 }
 
 $jang = new Jang();
+$version = "0.1";
 if($argc < 2) {
+        echo "Jang version: $version\n";
         die("Usage: php $argv[0] <file.ja>\n");
 } else {
         if(str_ends_with($argv[1], ".ja")) {
