@@ -1,0 +1,11 @@
+struct Person {
+        name
+        age
+}
+
+svar p1 ;= Person
+svset p1->name ;= "Kate";
+svset p1->age ;= 10 + 11;
+println "name: " $p1->name "\nage: " $p1->age "\n";
+@ Warning: structs variables are not normal variables, you can't use with #mystructvar for example, you need to use $Person->name for example, but you can only use with '->'! @
+@ some things in this language don't need semicolon! @
