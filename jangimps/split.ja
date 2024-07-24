@@ -1,0 +1,24 @@
+function split delim content {
+	var pos ;= 0;
+	var contlen ;= len(#content);
+	var fstr ;= "";
+	list items
+	while {
+		if(#pos < #contlen) {
+			var tok ;= #content(#pos);
+			var pos ;= #pos + 1;
+			if(#tok != #delim) {
+				var fstr ;= #tok #fstr :;
+			} if(#tok = #delim) {
+				if(#fstr != "") {
+					append items (#fstr)
+					var fstr ;= "";
+				}
+			}
+		} if(#pos >= #contlen) {
+			append items (#fstr)
+			break
+		}
+	}
+	#items
+}
