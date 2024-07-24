@@ -234,7 +234,7 @@ class Jang {
 			} else if($token[0] == $this->t_float) {
 				$this->rets[] = $token[1];
 			} else if($token[0] == $this->t_string) {
-				$this->rets[] = str_replace("\\t", "\t", str_replace("\\n", "\n", $token[1]);
+				$this->rets[] = str_replace("\\t", "\t", str_replace("\\n", "\n", $token[1]));
 			} else if($token[0] == $this->t_plus) {
 				$token = $tokens[$pos];
 				$pos++;
@@ -921,6 +921,40 @@ class Jang {
 						}
 						$this->Execute($code);
 						$this->rets[] = $this->variables[$name][array_pop($this->rets)];
+					} else if($token[0] == $this->t_structpoint) {
+						$token = $tokens[$pos];
+						$pos++;
+						$itemname = "";
+						if($token[0] == $this->t_var) {
+							$token = $tokens[$pos];
+							$pos++;
+							$itemname = $this->variables[$token[1]];
+						} else {
+							$itemname = $token[1];
+						}
+						$token = $tokens[$pos];
+						$pos++;
+						if($token[0] == $this->t_set) {
+							$code = "";
+							$token = $tokens[$pos];
+							$pos++;
+							while($token[0] != $this->t_semicolon && $pos <= sizeof($tokens)) {
+								if($token[0] == $this->t_string) {
+									$code = $code . "\"" . $token[1] . "\" ";
+								} else {
+									$code = $code . $token[1] . " ";
+								}
+
+								if($pos < sizeof($tokens)) {
+									$token = $tokens[$pos];
+								}
+								$pos++;
+							}
+							$this->Execute($code);
+							$this->variables[$name][$itemname] = array_pop($this->rets);
+						} else {
+							die("Error: use ;= to set variables values!");
+						}
 					} else {
 						$pos--;
 						$this->rets[] = $this->variables[$name];
@@ -1072,6 +1106,8 @@ class Jang {
 					$token = $tokens[$pos];
 					$pos++;
 					$this->rets[] = $this->svars[$name][$token[1]];
+				} else {
+					$this->rets[] = $this->svars[$name];
 				}
 			} else if($token[0] == $this->t_conc) {
 				$this->rets[] = array_pop($this->rets) . array_pop($this->rets);
@@ -1081,7 +1117,7 @@ class Jang {
 }
 
 $jang = new Jang();
-$version = "0.4";
+$version = "0.5";
 if($argc < 2) {
 	echo "Jang version: $version\n";
 	die("Usage: php $argv[0] <file.ja>\n");
