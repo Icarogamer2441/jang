@@ -1,0 +1,5 @@
+var mylist ;= array;
+append mylist (10)
+append mylist (20 + 5)
+ar_print mylist
+@ you can continue using 'list listname' too, but you can use 'array' to create array values to struct variables @
