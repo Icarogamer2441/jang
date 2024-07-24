@@ -1,0 +1,15 @@
+@ That's how you create dictionaries @
+var itemname ;= "age";
+
+@ you can use 'list listname' too @
+var mydict ;= array;
+#mydict->name ;= "Naty";
+#mydict->#itemname ;= 25;
+ar_print mydict;
+println "name: " #mydict("name") "\nage: " #mydict("age") "\n";
+
+@
+if you get ar_print errors, put ';'. error that you can get:
+" in /mnt/c/Users/icaro/Documents/phpprojects/jang/jang.php on line 413
+PHP Warning:  foreach() argument must be of type array|object, null given in /mnt/c/Users/icaro/Documents/phpprojects/jang/jang.php on line 41
+@
