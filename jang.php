@@ -206,7 +206,6 @@ class Lexer {
 	}
 }
 
-
 class Jang {
 	use TokenType;
 	public $variables = array();
@@ -215,9 +214,14 @@ class Jang {
 	public $structs = array();
 	public $svars = array();
 	public $while = false;
+	public $argc;
+	public $argv;
 
 	public function __construct() {
-		
+		$this->argv = $_SERVER['argv'];
+		$this->argc = $_SERVER['argc'];
+		$this->variables["argc"] = $this->argc - 1;
+		$this->variables["argv"] = array_slice($this->argv, 1);
 	}
 
 	public function Execute($code) {
@@ -971,6 +975,51 @@ class Jang {
 						$b = array_pop($this->rets);
 						$a = array_pop($this->rets);
 						$this->rets[] = join($a, $b);
+					} else {
+						die("Error: use '(' to start the arguments!\n");
+					}
+				} else if($token[1] == "exit") {
+					$code = "";
+					$token = $tokens[$pos];
+					$pos++;
+					if($token[0] == $this->t_lparen) {
+						$token = $tokens[$pos];
+						$pos++;
+						$argsendnum = 0;
+						$argsendnum++;
+						while($argsendnum > 0 && $pos <= sizeof($tokens)) {
+							if($token[0] == $this->t_rparen) {
+								$argsendnum--;
+								if($argsendnum >= 1) {
+									if($token[0] == $this->t_string) {
+										$code = $code . "\"" . $token[1] . "\" ";
+									} else {
+										$code = $code . $token[1] . " ";
+									}
+								}
+							} else if($token[0] == $this->t_lparen) {
+								$argsendnum++;
+								if($token[0] == $this->t_string) {
+									$code = $code . "\"" . $token[1] . "\" ";
+								} else {
+									$code = $code . $token[1] . " ";
+								}
+							} else {
+								if($token[0] == $this->t_string) {
+									$code = $code . "\"" . $token[1] . "\" ";
+								} else {
+									$code = $code . $token[1] . " ";
+								}
+							}
+
+							if($pos < sizeof($tokens)) {
+								$token = $tokens[$pos];
+							}
+							$pos++;
+						}
+						$pos--;
+						$this->Execute($code);
+						exit(array_pop($this->rets));
 					} else {
 						die("Error: use '(' to start the arguments!\n");
 					}
