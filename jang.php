@@ -105,7 +105,7 @@ class Lexer {
 					$token = $this->code[$pos];
 					$pos++;
 				}
-				$this->tokens[] = array($this->t_string, join("", $this->jndtoks));
+				$this->tokens[] = array($this->t_string, str_replace("\\'", "\"", join("", $this->jndtoks)));
 				$this->jndtoks = array();
 			} else if($token == "+") {
 				$this->tokens[] = array($this->t_plus, "+");
@@ -214,8 +214,7 @@ class Jang {
 	public $functions = array();
 	public $structs = array();
 	public $svars = array();
-	public $whiles = array(false);
-	public $whilepos = -1;
+	public $while = false;
 
 	public function __construct() {
 		
@@ -742,52 +741,43 @@ class Jang {
 						die("Error: use '(' to start the arguments!\n");
 					}
 				} else if($token[1] == "break") {
-					$this->whiles[$this->whilepos] = false;
-					$this->whilepos--;
+					$this->while = false;
 				} else if($token[1] == "while") {
 					$token = $tokens[$pos];
 					$pos++;
-					$this->whilepos++;
 					$endnum = 0;
-					while($this->whilepos < 0 || $this->whilepos >= sizeof($this->whiles)) {
-						if($this->whilepos >= sizeof($this->whiles)) {
-							$this->whiles[] = true;
-						} else if ($this->whilepos < 0) {
-							$this->whilepos++;
-						}
-					}
 
-					$this->whiles[$this->whilepos] = true;
+					$this->while = true;
 
-					$whilepos = $this->whilepos;
 					if($token[0] == $this->t_lbracket) {
 						$endnum++;
 						$token = $tokens[$pos];
 						$pos++;
-						$whcode = "";
+						$whcode = array();
 						while($endnum > 0 && $pos < sizeof($tokens)) {
 							if($token[0] == $this->t_lbracket) {
 								$endnum++;
-								$whcode = $whcode . $token[1] . " ";
+								$whcode[] = $token[1];
 							} else if($token[0] == $this->t_rbracket) {
 								$endnum--;
 								if($endnum >= 1) {
-									$whcode = $whcode . $token[1] . " ";
+									$whcode[] = $token[1];
 								}
 							} else {
 								if($token[0] == $this->t_string) {
-									$whcode = $whcode . "\"" . $token[1] . "\" ";
+									$whcode[] = "\"" . $token[1] . "\"";
 								} else {
-									$whcode = $whcode . $token[1] . " ";
+									$whcode[] = $token[1];
 								}
 							}
 							$token = $tokens[$pos];
 							$pos++;
 						}
 						$pos--;
+						$fcode = join(" ", $whcode);
 
-						while($this->whiles[$whilepos]) {
-							$this->Execute($whcode);
+						while($this->while) {
+							$this->Execute($fcode);
 						}
 					} else if($token[0] == $this->t_lparen) {
 						die("Error: whiles can't do '=|!=', '>|<' or '>=|<=' in this language!\n");
@@ -892,6 +882,66 @@ class Jang {
 						$pos--;
 						$this->Execute($code);
 						$this->rets[] = strlen(array_pop($this->rets));
+					} else {
+						die("Error: use '(' to start the arguments!\n");
+					}
+				} else if($token[1] == "exec") {
+					$code = "";
+					$token = $tokens[$pos];
+					$pos++;
+					while($token[0] != $this->t_semicolon && $pos <= sizeof($tokens)) {
+						$code = $code . $token[1] . " ";
+
+						if($pos < sizeof($tokens)) {
+							$token = $tokens[$pos];
+						}
+						$pos++;
+					}
+					$this->Execute($code);
+				} else if($token[1] == "join") {
+					$code = "";
+					$token = $tokens[$pos];
+					$pos++;
+					if($token[0] == $this->t_lparen) {
+						$token = $tokens[$pos];
+						$pos++;
+						$argsendnum = 0;
+						$argsendnum++;
+						while($argsendnum > 0 && $pos <= sizeof($tokens)) {
+							if($token[0] == $this->t_rparen) {
+								$argsendnum--;
+								if($argsendnum >= 1) {
+									if($token[0] == $this->t_string) {
+										$code = $code . "\"" . $token[1] . "\" ";
+									} else {
+										$code = $code . $token[1] . " ";
+									}
+								}
+							} else if($token[0] == $this->t_lparen) {
+								$argsendnum++;
+								if($token[0] == $this->t_string) {
+									$code = $code . "\"" . $token[1] . "\" ";
+								} else {
+									$code = $code . $token[1] . " ";
+								}
+							} else {
+								if($token[0] == $this->t_string) {
+									$code = $code . "\"" . $token[1] . "\" ";
+								} else {
+									$code = $code . $token[1] . " ";
+								}
+							}
+
+							if($pos < sizeof($tokens)) {
+								$token = $tokens[$pos];
+							}
+							$pos++;
+						}
+						$pos--;
+						$this->Execute($code);
+						$b = array_pop($this->rets);
+						$a = array_pop($this->rets);
+						$this->rets[] = join($a, $b);
 					} else {
 						die("Error: use '(' to start the arguments!\n");
 					}
@@ -1117,7 +1167,7 @@ class Jang {
 }
 
 $jang = new Jang();
-$version = "0.5";
+$version = "0.6";
 if($argc < 2) {
 	echo "Jang version: $version\n";
 	die("Usage: php $argv[0] <file.ja>\n");
