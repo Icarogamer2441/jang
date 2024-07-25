@@ -1,0 +1,46 @@
+import "split.ja"
+
+function execute code {
+    var tokens ;= !split("\n" #code);
+    var tokens ;= join("\t" #tokens);
+    var tokens ;= !split("\t" #tokens);
+    var tokens ;= join(" " #tokens);
+    var tokens ;= !split(" " #tokens);
+    var pos ;= 0;
+    var toksize ;= sizeof(#tokens);
+    var stack ;= array;
+    function cont {
+        while {
+            if(#pos < #toksize) {
+                var token ;= #tokens(#pos);
+                var pos ;= #pos + 1;
+                if(#token != ";") {
+                    println #token " ";
+                } if (#token = ";") {
+                    println "\n";
+                    break
+                    !interpret()
+                }
+            } if(#pos >= #toksize) {
+                break
+            }
+        }
+    }
+    function interpret {
+        while {
+            if(#pos < #toksize) {
+                var token ;= #tokens(#pos);
+                var pos ;= #pos + 1;
+                if(#token = "print") {
+                    !cont()
+                }
+            } if(#pos >= #toksize) {
+                exec "break";
+            }
+        }
+    }
+    !interpret()
+}
+@ You need to use while loops inside separate functions because if you have a while inside another while, both will be stopped (and all that are working) @
+
+!execute("print Hello world! ; print aaaa ;")
