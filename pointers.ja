@@ -1,0 +1,7 @@
+var n1 ;= 10;
+println "n1 value: " #n1 "\n";
+
+var mypointer ;= "n1";
+var *mypointer ;= 20;
+
+println "new n1 value: " #n1 "\n";
