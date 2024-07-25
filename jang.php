@@ -1023,6 +1023,8 @@ class Jang {
 					} else {
 						die("Error: use '(' to start the arguments!\n");
 					}
+				} else if($token[1] == "input") {
+					$this->rets[] = trim(fgets(STDIN));
 				}
 			} else if($token[0] == $this->t_var) {
 				$token = $tokens[$pos];
@@ -1245,7 +1247,7 @@ class Jang {
 }
 
 $jang = new Jang();
-$version = "0.7";
+$version = "0.8";
 if($argc < 2) {
 	echo "Jang version: $version\n";
 	die("Usage: php $argv[0] <file.ja>\n");
