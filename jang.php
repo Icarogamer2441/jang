@@ -346,29 +346,58 @@ class Jang {
 				} else if($token[1] == "var") {
 					$token = $tokens[$pos];
 					$pos++;
-					$name = $token[1];
-					$token = $tokens[$pos];
-					$pos++;
-					if($token[0] == $this->t_set) {
-						$code = "";
+					if($token[0] == $this->t_times) {
 						$token = $tokens[$pos];
 						$pos++;
-						while($token[0] != $this->t_semicolon && $pos <= sizeof($tokens)) {
-							if($token[0] == $this->t_string) {
-								$code = $code . "\"" . $token[1] . "\" ";
-							} else {
-								$code = $code . $token[1] . " ";
-							}
-
-							if($pos < sizeof($tokens)) {
-								$token = $tokens[$pos];
-							}
+						$name = $token[1];
+						$token = $tokens[$pos];
+						$pos++;
+						if($token[0] == $this->t_set) {
+							$code = "";
+							$token = $tokens[$pos];
 							$pos++;
+							while($token[0] != $this->t_semicolon && $pos <= sizeof($tokens)) {
+								if($token[0] == $this->t_string) {
+									$code = $code . "\"" . $token[1] . "\" ";
+								} else {
+									$code = $code . $token[1] . " ";
+								}
+
+								if($pos < sizeof($tokens)) {
+									$token = $tokens[$pos];
+								}
+								$pos++;
+							}
+							$this->Execute($code);
+							$this->variables[$this->variables[$name]] = array_pop($this->rets);
+						} else {
+							die("Error: use ;= to set variables values!");
 						}
-						$this->Execute($code);
-						$this->variables[$name] = array_pop($this->rets);
 					} else {
-						die("Error: use ;= to set variables values!");
+						$name = $token[1];
+						$token = $tokens[$pos];
+						$pos++;
+						if($token[0] == $this->t_set) {
+							$code = "";
+							$token = $tokens[$pos];
+							$pos++;
+							while($token[0] != $this->t_semicolon && $pos <= sizeof($tokens)) {
+								if($token[0] == $this->t_string) {
+									$code = $code . "\"" . $token[1] . "\" ";
+								} else {
+									$code = $code . $token[1] . " ";
+								}
+
+								if($pos < sizeof($tokens)) {
+									$token = $tokens[$pos];
+								}
+								$pos++;
+							}
+							$this->Execute($code);
+							$this->variables[$name] = array_pop($this->rets);
+						} else {
+							die("Error: use ;= to set variables values!");
+						}
 					}
 				} else if($token[1] == "clearets") {
 					$this->rets = array();
@@ -1167,7 +1196,7 @@ class Jang {
 }
 
 $jang = new Jang();
-$version = "0.6";
+$version = "0.7";
 if($argc < 2) {
 	echo "Jang version: $version\n";
 	die("Usage: php $argv[0] <file.ja>\n");
