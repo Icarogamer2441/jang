@@ -4,4 +4,6 @@ println "n1 value: " #n1 "\n";
 var mypointer ;= "n1";
 var *mypointer ;= 20;
 
+@ pointers only works with normal variables @
+
 println "new n1 value: " #n1 "\n";
