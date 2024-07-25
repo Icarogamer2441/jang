@@ -1,5 +1,7 @@
 import "split.ja"
 
+
+
 function execute code {
     var tokens ;= !split("\n" #code);
     var tokens ;= join("\t" #tokens);
@@ -36,6 +38,7 @@ function execute code {
                 }
             } if(#pos >= #toksize) {
                 exec "break";
+                @ this 'exec' is used to force the 'break' to work, or execute other code from a string ( to add an '"' to your strings, you can use "\'") @
             }
         }
     }
