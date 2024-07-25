@@ -1,0 +1,7 @@
+if(#argc < 2) {
+    println "Error: now this language have argc and argv and exit!\n";
+    println "Error: use: " #argv(0) " <arg>\n";
+    exit(1)
+} if(#argc >= 2) {
+    println "argv[1]: " #argv(1) "\n";
+}
