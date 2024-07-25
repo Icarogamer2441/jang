@@ -1,4 +1,4 @@
 import split.ja
 
-var splited ;= !split(" ", "Hello                       World!");
+var splited ;= !split(" " "Hello                       World!");
 ar_print splited
