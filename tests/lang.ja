@@ -44,6 +44,6 @@ function execute code {
     }
     !interpret()
 }
-@ You need to use while loops inside separate functions because if you have a while inside another while, both will be stopped (and all that are working) @
+@ If you try to stop a while loop inside another while loop, both will be stopped (and all the whiles that are active) @
 
 !execute("print Hello world! ; print aaaa ;")
