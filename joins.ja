@@ -1,0 +1,5 @@
+list mylist
+append mylist("Hello")
+append mylist("World!\n")
+
+println join("," #mylist);
